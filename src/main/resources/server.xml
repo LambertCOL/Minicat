@@ -4,6 +4,6 @@
         <Connector port="8080" />
         <Engine>
             <Host name="localhost" appBase="D:\Code\My_Tomcat\Minicat\webapps"></Host>
-        </Engine>demo1.server.Demo1Servlet
+        </Engine>
     </Service>
 </Server>

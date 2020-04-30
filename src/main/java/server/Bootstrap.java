@@ -28,14 +28,6 @@ public class Bootstrap {
 
     private Mapper mapper;
 
-    public int getPort() {
-        return port;
-    }
-
-    public void setPort(int port) {
-        this.port = port;
-    }
-
     /**
      * 服务器启动后要有一些初始化操作，比如监听端口。这些初始化工作统一写到 start 方法中
      * Minicat 启动需要初始化展开的一些操作
@@ -46,9 +38,11 @@ public class Bootstrap {
      * 5.0版本：多线程-线程池版
      */
     public void start() throws Exception {
-        loadServerConfig();
         //要处理动态资源请求servlet，在启动时就要先对servlet进行加载
-        loadServlet();
+        //loadServlet();
+
+        //读取server.xml配置文件进行加载
+        loadServerConfig();
 
         //Socket监听
         ServerSocket serverSocket = new ServerSocket(port);
@@ -110,9 +104,15 @@ public class Bootstrap {
         RejectedExecutionHandler handler = new ThreadPoolExecutor.AbortPolicy();
         ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory, handler);
 
+        /*while (true) {
+            Socket socket = serverSocket.accept();
+            RequestProcessor requestProcessor = new RequestProcessor(socket, servletMap);
+            threadPoolExecutor.execute(requestProcessor);
+        }*/
+
+        /*6.0版本：模拟webapps部署*/
         while (true) {
             Socket socket = serverSocket.accept();
-//            RequestProcessor requestProcessor = new RequestProcessor(socket, servletMap);
             RequestProcessor requestProcessor = new RequestProcessor(socket, mapper);
             threadPoolExecutor.execute(requestProcessor);
         }
@@ -125,7 +125,6 @@ public class Bootstrap {
     private void loadServerConfig() {
         InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream("server.xml");
         SAXReader saxReader = new SAXReader();
-        //约定server.xml中Server、Service、Connector、Engine、Host都只有一个
 
         try {
             Document document = saxReader.read(resourceAsStream);
@@ -147,11 +146,11 @@ public class Bootstrap {
             Element hostElement = (Element) rootElement.selectSingleNode("/Server/Service/Engine/Host");    //找Host
             String name = hostElement.attribute("name").getValue();
             String appBase = hostElement.attribute("appBase").getValue();
+
             Host host = new Host(name, appBase);
             //加载每个项目中的servlet并封装到Mapper
             Context[] contexts = loadCustomizedServlet(appBase);
             host.setContexts(contexts);
-            //System.out.println(host);
             this.mapper = new Mapper(host);
         } catch (Exception e) {
             e.printStackTrace();
@@ -165,20 +164,16 @@ public class Bootstrap {
         for (int i = 0; i < webappsDir.length; i++) {
             File webDir = webappsDir[i];
             String contextName = webDir.getName();
-            Context context = new Context("/"+contextName); //每个部署在webapps下的项目都起一个独立的上下文
+            Context context = new Context("/" + contextName); //每个部署在webapps下的项目都起一个独立的上下文
 
             //获取webDir的所有class文件
-            List classes = getClasses(webDir);
-            System.out.println(classes);
-
-            //
-            Wrapper[] wrappers = new Wrapper[classes.size()];
-            for (int j = 0; j < classes.size(); j++) {
-                HttpServlet clazz = (HttpServlet)classes.get(j);
-                String url = clazz.getClass().getPackage().getName().replaceFirst(contextName, "").replaceAll("\\.", "\\/");
-//                clazz.getClass().getPackage().getName()
-                Wrapper wrapper = new Wrapper(url, clazz);
-                wrappers[j]=wrapper;
+            List<Servlet> servlets = getServlets(webDir);
+            Wrapper[] wrappers = new Wrapper[servlets.size()];
+            for (int j = 0; j < servlets.size(); j++) {
+                Servlet servlet = servlets.get(j);
+                String url = servlet.getClass().getPackage().getName().replaceFirst(contextName, "").replaceAll("\\.", "\\/");
+                Wrapper wrapper = new Wrapper(url, servlet);
+                wrappers[j] = wrapper;
             }
             context.setWrappers(wrappers);
             contexts[i] = context;
@@ -192,8 +187,8 @@ public class Bootstrap {
      *
      * @param webappsDir
      */
-    public List getClasses(File webappsDir) {
-        List<HttpServlet> classes = new ArrayList<>();
+    public List getServlets(File webappsDir) {
+        List<Servlet> servlets = new ArrayList<>();
         try {
             // 获取此包的目录 建立一个File
             File[] webPrjs = webappsDir.listFiles();
@@ -205,18 +200,18 @@ public class Bootstrap {
                 if (prj.isFile()) {
                     if (prjPath.substring(prjPath.lastIndexOf(".")).equalsIgnoreCase(".class")) {
                         // 添加到集合中去
-                        HttpServlet servlet = (HttpServlet) Class.forName(prjPath.split("\\webapps\\\\")[1].replaceAll("\\\\", ".").replaceAll(".class", "")).newInstance();
-                        classes.add(servlet);
+                        Servlet servlet = (HttpServlet) Class.forName(prjPath.split("\\webapps\\\\")[1].replaceAll("\\\\", ".").replaceAll(".class", "")).newInstance();
+                        servlets.add(servlet);
                     }
-                } else{
+                } else {
                     //如果是目录则递归
-                    classes.addAll(getClasses(prj));
+                    servlets.addAll(getServlets(prj));
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return classes;
+        return servlets;
     }
 
 

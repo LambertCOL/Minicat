@@ -90,12 +90,12 @@ class Context {
 
 class Wrapper {
     private String url;
-    private HttpServlet servlet;
+    private Servlet servlet;
 
     public Wrapper() {
     }
 
-    public Wrapper(String url, HttpServlet servlet) {
+    public Wrapper(String url, Servlet servlet) {
         this.url = url;
         this.servlet = servlet;
     }
@@ -108,11 +108,11 @@ class Wrapper {
         this.url = url;
     }
 
-    public HttpServlet getServlet() {
+    public Servlet getServlet() {
         return servlet;
     }
 
-    public void setServlet(HttpServlet servlet) {
+    public void setServlet(Servlet servlet) {
         this.servlet = servlet;
     }
 }

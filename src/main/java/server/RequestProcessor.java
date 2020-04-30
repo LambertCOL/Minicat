@@ -12,9 +12,9 @@ import java.util.Map;
 public class RequestProcessor extends Thread {
 
     private Socket socket;
-    private Map<String, HttpServlet> servletMap;
+    /*private Map<String, HttpServlet> servletMap;
 
-    /*public RequestProcessor(Socket socket, Map<String, HttpServlet> servletMap) {
+    public RequestProcessor(Socket socket, Map<String, HttpServlet> servletMap) {
         this.socket = socket;
         this.servletMap = servletMap;
     }
@@ -59,8 +59,7 @@ public class RequestProcessor extends Thread {
             String url = request.getUrl();
             Wrapper w = null;
 
-            Host host = servletMapper.getHost();
-            Context[] contexts = host.getContexts();
+            Context[] contexts = servletMapper.getHost().getContexts();
             for (Context context : contexts) {
                 if (url.startsWith(context.getName())) {
                     Wrapper[] wrappers = context.getWrappers();
@@ -75,9 +74,10 @@ public class RequestProcessor extends Thread {
                     }
                 }
             }
+
             if (isDynamicResourceRequest){
                 //动态资源请求
-                HttpServlet servlet = w.getServlet();
+                Servlet servlet = w.getServlet();
                 servlet.service(request, response);
             }else {
                 //静态资源请求
