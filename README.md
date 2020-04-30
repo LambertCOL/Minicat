@@ -4,7 +4,7 @@
 
 图方便，我直接在Minicat下创建webapps文件夹存储编译后的文件
 
-![image-20200430095742285](C:\Users\VULCAN\AppData\Roaming\Typora\typora-user-images\image-20200430095742285.png)
+![image-20200430095742285](https://github.com/LambertCOL/Minicat/blob/master/image-20200430095742285.png)
 
 
 
