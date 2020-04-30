@@ -2,7 +2,7 @@
 
 ### **1. 项目磁盘路径**
 
-图方便，我直接在Minicat下创建webapps文件夹存储编译后的文件
+图方便，我直接在Minicat下创建webapps文件夹存储编译后的文件，绝对路径是D:\Code\My_Tomcat\Minicat\webapps
 
 ![图片1](https://github.com/LambertCOL/Minicat/blob/master/image-20200430095742285.png)
 
