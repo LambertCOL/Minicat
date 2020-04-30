@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Server>
+    <Service>
+        <Connector port="8081" />
+        <Engine>
+            <Host name="localhost" appBase="D:\Code\My_Tomcat\Minicat\webapps"></Host>
+        </Engine>demo1.server.Demo1Servlet
+    </Service>
+</Server>
